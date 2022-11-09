@@ -1,6 +1,7 @@
 package net.easecation.eccommons.promise;
 
 import cn.nukkit.utils.TextFormat;
+import it.unimi.dsi.fastutil.Pair;
 import net.easecation.eccommons.ECCommons;
 import net.easecation.eccommons.Unit;
 
@@ -107,6 +108,57 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
+	public static <T1, T2> AsyncPromise<Pair<T1, T2>> awaitAllPair(AsyncPromise<T1> task1, AsyncPromise<T2> task2) {
+		return awaitAllPair(task1, task2, false);
+	}
+
+	public static <T1, T2> AsyncPromise<Pair<T1, T2>> awaitAllPair(AsyncPromise<T1> task1, AsyncPromise<T2> task2, boolean strict) {
+		AsyncPromise<Pair<T1, T2>> promise = pending();
+		new Object() {
+			final int numTask = 2;
+			T1 result1 = null;
+			T2 result2 = null;
+			int completedTask = 0;
+			boolean failed = false;
+
+			public void run() {
+				task1.whenSuccess(result -> {
+					completedTask++;
+					result1 = result;
+					if (failed) return;
+					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
+				});
+				task1.whenFailed(() -> {
+					completedTask++;
+					if (failed) return;
+					if (strict) {
+						failed = true;
+						promise.onFailed();
+						return;
+					}
+					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
+				});
+				task2.whenSuccess(result -> {
+					completedTask++;
+					result2 = result;
+					if (failed) return;
+					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
+				});
+				task2.whenFailed(() -> {
+					completedTask++;
+					if (failed) return;
+					if (strict) {
+						failed = true;
+						promise.onFailed();
+						return;
+					}
+					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
+				});
+			}
+		}.run();
+		return promise;
+	}
+
 	public static <T, U> AsyncPromise<List<U>> awaitAllFlatMap(Collection<AsyncPromise<T>> tasks, Function<T, List<U>> mapper) {
 		return awaitAllFlatMap(tasks, mapper, false);
 	}
@@ -172,6 +224,29 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 							return;
 						}
 						if (completedTask >= numTask) promise.onSuccess(Unit.UNIT);
+					});
+				}
+			}
+		}.run();
+		return promise;
+	}
+
+	public static <T> AsyncPromise<T> awaitRace(Collection<AsyncPromise<T>> tasks) {
+		AsyncPromise<T> promise = pending();
+		new Object() {
+			boolean completed = false;
+
+			public void run() {
+				for (AsyncPromise<T> task : tasks) {
+					task.whenSuccess(result -> {
+						if (completed) return;
+						completed = true;
+						promise.onSuccess(result);
+					});
+					task.whenFailed(() -> {
+						if (completed) return;
+						completed = true;
+						promise.onFailed();
 					});
 				}
 			}
