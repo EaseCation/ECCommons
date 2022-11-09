@@ -1,0 +1,11 @@
+#name, main, version and api are required
+name: ECCommons
+main: net.easecation.eccommons.ECCommons
+#remember version and api is string, don't write it like this: 1.0.0, or there will be an exception
+version: "1"
+api: ["1.0.0"]
+
+load: POSTWORLD
+author: EaseCation Team
+description: EaseCation Block Party for Nukkit
+website: http://www.easecation.net
