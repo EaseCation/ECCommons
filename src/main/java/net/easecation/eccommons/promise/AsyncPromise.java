@@ -73,10 +73,26 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return whenSuccess(value -> callback.run()).whenFailed(callback);
 	}
 
+	/**
+	 * Await all promise to complete.
+	 * Promise succeed if some succeed.
+	 * Promise will not fail.
+	 */
 	public static <T> AsyncPromise<List<T>> awaitAll(Collection<AsyncPromise<T>> tasks) {
 		return awaitAll(tasks, false);
 	}
 
+	/**
+	 * Await all promise to complete.
+	 * <p>
+	 * If {@code strict} is {@code true}.
+	 * Promise succeed if all succeed.
+	 * Promise failed if any failed.
+	 * <p>
+	 * If {@code strict} is {@code false}.
+	 * Promise succeed if some succeed.
+	 * Promise will not fail.
+	 */
 	public static <T> AsyncPromise<List<T>> awaitAll(Collection<AsyncPromise<T>> tasks, boolean strict) {
 		if (tasks.isEmpty()) return success(new ArrayList<>());
 		AsyncPromise<List<T>> promise = pending();
@@ -147,10 +163,26 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
+	/**
+	 * Await all promise to complete passively.
+	 * Promise succeed if some succeed.
+	 * Promise will not fail.
+	 */
 	public static <T> AsyncPromise<Unit> awaitAllPassive(Collection<AsyncPromise<T>> tasks) {
 		return awaitAllPassive(tasks, false);
 	}
 
+	/**
+	 * Await all promise to complete passively.
+	 * <p>
+	 * If {@code strict} is {@code true}.
+	 * Promise succeed if all succeed.
+	 * Promise failed if any failed.
+	 * <p>
+	 * If {@code strict} is {@code false}.
+	 * Promise succeed if some succeed.
+	 * Promise will not fail.
+	 */
 	public static <T> AsyncPromise<Unit> awaitAllPassive(Collection<AsyncPromise<T>> tasks, boolean strict) {
 		if (tasks.isEmpty()) return success(Unit.UNIT);
 		AsyncPromise<Unit> promise = pending();
@@ -182,6 +214,11 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
+	/**
+	 * Await any promise to complete.
+	 * Promise succeed if any succeed.
+	 * Promise failed if any failed.
+	 */
 	public static <T> AsyncPromise<T> awaitAny(Collection<AsyncPromise<T>> tasks) {
 		AsyncPromise<T> promise = pending();
 		new Object() {
@@ -205,6 +242,11 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
+	/**
+	 * Await some promise to complete.
+	 * Promise succeed if any succeed.
+	 * Promise failed if all failed.
+	 */
 	public static <T> AsyncPromise<T> awaitSome(Collection<AsyncPromise<T>> tasks) {
 		AsyncPromise<T> promise = pending();
 		new Object() {
@@ -234,6 +276,11 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
+	/**
+	 * Await two promise to complete.
+	 * Promise succeed if all succeed.
+	 * Promise failed if any failed.
+	 */
 	public static <T, U> AsyncPromise<Tuple<T, U>> awaitTwo(AsyncPromise<T> first, AsyncPromise<U> second) {
 		AsyncPromise<List<Either<T, U>>> promise = awaitAll(Arrays.asList(first.map(Either::ofLeft), second.map(Either::ofRight)), true);
 		return promise.flatMap(result -> {
@@ -248,6 +295,11 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		});
 	}
 
+	/**
+	 * Await either promise to complete.
+	 * Promise succeed if any succeed.
+	 * Promise failed if all failed.
+	 */
 	public static <T, U> AsyncPromise<Either<T, U>> awaitEither(AsyncPromise<T> left, AsyncPromise<U> right) {
 		return awaitSome(Arrays.asList(left.map(Either::ofLeft), right.map(Either::ofRight)));
 	}
