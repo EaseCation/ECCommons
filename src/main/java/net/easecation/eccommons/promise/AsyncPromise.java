@@ -3,7 +3,7 @@ package net.easecation.eccommons.promise;
 import cn.nukkit.utils.TextFormat;
 import it.unimi.dsi.fastutil.Pair;
 import net.easecation.eccommons.ECCommons;
-import net.easecation.eccommons.Unit;
+import net.easecation.eccommons.adt.Unit;
 
 import java.util.ArrayList;
 import java.util.Collection;
