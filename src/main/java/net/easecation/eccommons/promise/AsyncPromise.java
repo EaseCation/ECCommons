@@ -205,6 +205,36 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
+	public static <T> AsyncPromise<T> awaitSome(Collection<AsyncPromise<T>> tasks) {
+		AsyncPromise<T> promise = pending();
+		new Object() {
+			final int numTask = tasks.size();
+			int completedTask = 0;
+			boolean failed = false;
+			boolean succeed = false;
+
+			public void run() {
+				for (AsyncPromise<T> task : tasks) {
+					task.whenSuccess(result -> {
+						completedTask++;
+						if (failed || succeed) return;
+						succeed = true;
+						promise.onSuccess(result);
+					});
+					task.whenFailed(() -> {
+						completedTask++;
+						if (failed || succeed) return;
+						if (completedTask >= numTask) {
+							failed = true;
+							promise.onFailed();
+						}
+					});
+				}
+			}
+		}.run();
+		return promise;
+	}
+
 	public static <T, U> AsyncPromise<Tuple<T, U>> awaitTwo(AsyncPromise<T> first, AsyncPromise<U> second) {
 		AsyncPromise<List<Either<T, U>>> promise = awaitAll(Arrays.asList(first.map(Either::ofLeft), second.map(Either::ofRight)), true);
 		return promise.flatMap(result -> {
@@ -220,7 +250,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 	}
 
 	public static <T, U> AsyncPromise<Either<T, U>> awaitEither(AsyncPromise<T> left, AsyncPromise<U> right) {
-		return awaitAny(Arrays.asList(left.map(Either::ofLeft), right.map(Either::ofRight)));
+		return awaitSome(Arrays.asList(left.map(Either::ofLeft), right.map(Either::ofRight)));
 	}
 
 	@Override
