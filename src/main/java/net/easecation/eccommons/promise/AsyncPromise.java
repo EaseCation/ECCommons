@@ -219,6 +219,10 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		});
 	}
 
+	public static <T, U> AsyncPromise<Either<T, U>> awaitEither(AsyncPromise<T> left, AsyncPromise<U> right) {
+		return awaitAny(Arrays.asList(left.map(Either::ofLeft), right.map(Either::ofRight)));
+	}
+
 	@Override
 	public void onSuccess(T value) {
 		if (completed) throw new IllegalStateException("Promise already completed");
