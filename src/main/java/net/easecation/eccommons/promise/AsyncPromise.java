@@ -210,22 +210,21 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		new Object() {
 			final int numTask = tasks.size();
 			int completedTask = 0;
-			boolean failed = false;
-			boolean succeed = false;
+			boolean completed = false;
 
 			public void run() {
 				for (AsyncPromise<T> task : tasks) {
 					task.whenSuccess(result -> {
 						completedTask++;
-						if (failed || succeed) return;
-						succeed = true;
+						if (completed) return;
+						completed = true;
 						promise.onSuccess(result);
 					});
 					task.whenFailed(() -> {
 						completedTask++;
-						if (failed || succeed) return;
+						if (completed) return;
 						if (completedTask >= numTask) {
-							failed = true;
+							completed = true;
 							promise.onFailed();
 						}
 					});
