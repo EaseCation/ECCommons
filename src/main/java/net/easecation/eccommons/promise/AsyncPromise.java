@@ -1,8 +1,10 @@
 package net.easecation.eccommons.promise;
 
 import cn.nukkit.utils.TextFormat;
-import it.unimi.dsi.fastutil.Pair;
+import java.util.Arrays;
 import net.easecation.eccommons.ECCommons;
+import net.easecation.eccommons.adt.Either;
+import net.easecation.eccommons.adt.Tuple;
 import net.easecation.eccommons.adt.Unit;
 
 import java.util.ArrayList;
@@ -108,57 +110,6 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
-	public static <T1, T2> AsyncPromise<Pair<T1, T2>> awaitAllPair(AsyncPromise<T1> task1, AsyncPromise<T2> task2) {
-		return awaitAllPair(task1, task2, false);
-	}
-
-	public static <T1, T2> AsyncPromise<Pair<T1, T2>> awaitAllPair(AsyncPromise<T1> task1, AsyncPromise<T2> task2, boolean strict) {
-		AsyncPromise<Pair<T1, T2>> promise = pending();
-		new Object() {
-			final int numTask = 2;
-			T1 result1 = null;
-			T2 result2 = null;
-			int completedTask = 0;
-			boolean failed = false;
-
-			public void run() {
-				task1.whenSuccess(result -> {
-					completedTask++;
-					result1 = result;
-					if (failed) return;
-					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
-				});
-				task1.whenFailed(() -> {
-					completedTask++;
-					if (failed) return;
-					if (strict) {
-						failed = true;
-						promise.onFailed();
-						return;
-					}
-					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
-				});
-				task2.whenSuccess(result -> {
-					completedTask++;
-					result2 = result;
-					if (failed) return;
-					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
-				});
-				task2.whenFailed(() -> {
-					completedTask++;
-					if (failed) return;
-					if (strict) {
-						failed = true;
-						promise.onFailed();
-						return;
-					}
-					if (completedTask >= numTask) promise.onSuccess(Pair.of(result1, result2));
-				});
-			}
-		}.run();
-		return promise;
-	}
-
 	public static <T, U> AsyncPromise<List<U>> awaitAllFlatMap(Collection<AsyncPromise<T>> tasks, Function<T, List<U>> mapper) {
 		return awaitAllFlatMap(tasks, mapper, false);
 	}
@@ -231,7 +182,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		return promise;
 	}
 
-	public static <T> AsyncPromise<T> awaitRace(Collection<AsyncPromise<T>> tasks) {
+	public static <T> AsyncPromise<T> awaitAny(Collection<AsyncPromise<T>> tasks) {
 		AsyncPromise<T> promise = pending();
 		new Object() {
 			boolean completed = false;
@@ -252,6 +203,20 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 			}
 		}.run();
 		return promise;
+	}
+
+	public static <T, U> AsyncPromise<Tuple<T, U>> awaitTwo(AsyncPromise<T> first, AsyncPromise<U> second) {
+		AsyncPromise<List<Either<T, U>>> promise = awaitAll(Arrays.asList(first.map(Either::ofLeft), second.map(Either::ofRight)), true);
+		return promise.flatMap(result -> {
+			if (result.size() != 2) return AsyncPromise.failed();
+			Either<T, U> firstResult = result.get(0);
+			Either<T, U> secondResult = result.get(1);
+			if (firstResult.isLeft() && secondResult.isLeft()) return AsyncPromise.failed();
+			if (firstResult.isRight() && secondResult.isRight()) return AsyncPromise.failed();
+			T firstValue = firstResult.isLeft() ? firstResult.coerceLeft() : secondResult.coerceLeft();
+			U secondValue = firstResult.isRight() ? firstResult.coerceRight() : secondResult.coerceRight();
+			return AsyncPromise.success(Tuple.of(firstValue, secondValue));
+		});
 	}
 
 	@Override
