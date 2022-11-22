@@ -1,13 +1,15 @@
 package net.easecation.eccommons.promise;
 
 import cn.nukkit.utils.TextFormat;
-import java.util.Arrays;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.easecation.eccommons.ECCommons;
 import net.easecation.eccommons.adt.Either;
 import net.easecation.eccommons.adt.Tuple;
 import net.easecation.eccommons.adt.Unit;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -119,6 +121,51 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 							return;
 						}
 						if (completedTask >= numTask) promise.onSuccess(results);
+					});
+				}
+			}
+		}.run();
+		return promise;
+	}
+
+	public static <T> AsyncPromise<List<T>> awaitAllSeq(Collection<AsyncPromise<T>> tasks) {
+		return awaitAllSeq(tasks, false);
+	}
+
+	public static <T> AsyncPromise<List<T>> awaitAllSeq(Collection<AsyncPromise<T>> tasks, boolean strict) {
+		if (tasks.isEmpty()) return success(new ArrayList<>());
+		AsyncPromise<List<T>> promise = pending();
+		new Object() {
+			final int numTask = tasks.size();
+			final Int2ObjectMap<T> results = new Int2ObjectOpenHashMap<>(numTask);
+			int completedTask = 0;
+			boolean failed = false;
+
+			public void run() {
+				int i = 0;
+				for (AsyncPromise<T> task : tasks) {
+					int index = i++;
+					task.whenSuccess(result -> {
+						completedTask++;
+						results.put(index, result);
+						if (failed) return;
+						if (completedTask >= numTask) {
+							List<T> list = new ArrayList<>(numTask);
+							for (int j = 0; j < numTask; j++) {
+								list.add(results.get(j));
+							}
+							promise.onSuccess(list);
+						}
+					});
+					task.whenFailed(() -> {
+						completedTask++;
+						if (failed) return;
+						if (strict) {
+							failed = true;
+							promise.onFailed();
+							return;
+						}
+						if (completedTask >= numTask) promise.onSuccess(new ArrayList<>(results.values()));
 					});
 				}
 			}
