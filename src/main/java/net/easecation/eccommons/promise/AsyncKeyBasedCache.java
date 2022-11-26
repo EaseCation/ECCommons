@@ -110,10 +110,10 @@ public final class AsyncKeyBasedCache<K, A, T> {
 					}
 				}
 			}
-			ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "创建新的异步任务 " + taskName + " key = " + key);
+			ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "创建新的异步任务 " + taskName + " key = " + key);
 			Server.getInstance().getScheduler().scheduleAsyncTask(ECCommons.getInstance(), new InternalTask());
 		} else {
-			ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "等待异步任务 " + taskName + " 完成中 key = " + key);
+			ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "等待异步任务 " + taskName + " 完成中 key = " + key);
 		}
 	}
 
@@ -128,7 +128,7 @@ public final class AsyncKeyBasedCache<K, A, T> {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 key = " + key, e);
 			}
 		}
-		ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "异步任务 " + taskName + " 完成 key = " + key);
+		ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "异步任务 " + taskName + " 完成 key = " + key);
 	}
 
 	private void failed(K key) {
