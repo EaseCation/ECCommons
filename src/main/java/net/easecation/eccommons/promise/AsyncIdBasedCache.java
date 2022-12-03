@@ -58,7 +58,7 @@ public final class AsyncIdBasedCache<A, T> {
 			try {
 				if (callback != null) callback.onSuccess(value);
 			} catch (Exception e) {
-				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
+				ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
 			}
 			return;
 		}
@@ -92,7 +92,7 @@ public final class AsyncIdBasedCache<A, T> {
 					try {
 						task.runAsync(id, argument, this);
 					} catch (Exception e) {
-						ECCommons.getInstance().getLogger().alert(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误 id = " + id);
+						ECCommons.getInstance().getLogger().debug(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误 id = " + id);
 					}
 				}
 
@@ -103,7 +103,7 @@ public final class AsyncIdBasedCache<A, T> {
 						try {
 							task.run();
 						} catch (Exception e) {
-							ECCommons.getInstance().getLogger().alert(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误 id = " + id);
+							ECCommons.getInstance().getLogger().debug(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误 id = " + id);
 						}
 					}
 					if (hasResult) {
@@ -113,10 +113,10 @@ public final class AsyncIdBasedCache<A, T> {
 					}
 				}
 			}
-			ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "创建新的异步任务 " + taskName + " id = " + id);
+			ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "创建新的异步任务 " + taskName + " id = " + id);
 			Server.getInstance().getScheduler().scheduleAsyncTask(ECCommons.getInstance(), new InternalTask());
 		} else {
-			ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "等待异步任务 " + taskName + " 完成中 id = " + id);
+			ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "等待异步任务 " + taskName + " 完成中 id = " + id);
 		}
 	}
 
@@ -128,10 +128,10 @@ public final class AsyncIdBasedCache<A, T> {
 			try {
 				if (callback != null) callback.onSuccess(entry);
 			} catch (Exception e) {
-				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
+				ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
 			}
 		}
-		ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "异步任务 " + taskName + " 完成 id = " + id);
+		ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "异步任务 " + taskName + " 完成 id = " + id);
 	}
 
 	private void failed(int id) {
@@ -141,10 +141,10 @@ public final class AsyncIdBasedCache<A, T> {
 			try {
 				if (callback != null) callback.onFailed();
 			} catch (Exception e) {
-				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
+				ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
 			}
 		}
-		ECCommons.getInstance().getLogger().warn(TextFormat.RED + "异步任务 " + taskName + " 失败 id = " + id);
+		ECCommons.getInstance().getLogger().debug(TextFormat.RED + "异步任务 " + taskName + " 失败 id = " + id);
 	}
 
 	public Optional<T> get(int id) {

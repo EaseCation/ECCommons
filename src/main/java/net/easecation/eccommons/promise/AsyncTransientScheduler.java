@@ -67,24 +67,24 @@ public final class AsyncTransientScheduler<T> {
 			}
 		}
 		Server.getInstance().getScheduler().scheduleAsyncTask(ECCommons.getInstance(), new InternalTask());
-		ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "创建新的异步任务 " + taskName);
+		ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "创建新的异步任务 " + taskName);
 	}
 
 	private void success(AsyncCallback<T> callback, T result) {
 		try {
 			if (callback != null) callback.onSuccess(result);
 		} catch (Exception e) {
-			ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误", e);
+			ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误", e);
 		}
-		ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "异步任务 " + taskName + " 完成");
+		ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "异步任务 " + taskName + " 完成");
 	}
 
 	private void failed(AsyncCallback<T> callback) {
 		try {
 			if (callback != null) callback.onFailed();
 		} catch (Exception e) {
-			ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误", e);
+			ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误", e);
 		}
-		ECCommons.getInstance().getLogger().warn(TextFormat.RED + "异步任务 " + taskName + " 失败");
+		ECCommons.getInstance().getLogger().debug(TextFormat.RED + "异步任务 " + taskName + " 失败");
 	}
 }

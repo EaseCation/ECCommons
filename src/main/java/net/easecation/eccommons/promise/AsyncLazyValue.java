@@ -87,9 +87,9 @@ public final class AsyncLazyValue<A, T> {
 				}
 			}
 			Server.getInstance().getScheduler().scheduleAsyncTask(ECCommons.getInstance(), new InternalTask());
-			ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "创建新的异步任务 " + taskName);
+			ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "创建新的异步任务 " + taskName);
 		} else {
-			ECCommons.getInstance().getLogger().info(TextFormat.GREEN + "等待异步任务 " + taskName + " 完成中");
+			ECCommons.getInstance().getLogger().debug(TextFormat.GREEN + "等待异步任务 " + taskName + " 完成中");
 		}
 	}
 
