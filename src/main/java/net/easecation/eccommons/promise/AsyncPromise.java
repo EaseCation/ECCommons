@@ -76,6 +76,17 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 	}
 
 	/**
+	 * Forward current promise to another pending promise.
+	 * Target promise succeed if current promise succeed.
+	 * Target promise failed if current promise failed.
+	 */
+	public AsyncPromise<T> forward(AsyncPromise<T> promise) {
+		whenSuccess(promise::onSuccess);
+		whenFailed(promise::onFailed);
+		return this;
+	}
+
+	/**
 	 * Await all promise to complete.
 	 * Promise succeed if some succeed.
 	 * Promise will not fail.
