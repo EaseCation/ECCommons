@@ -3,6 +3,7 @@ package net.easecation.eccommons.promise;
 import cn.nukkit.utils.TextFormat;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import java.util.function.Predicate;
 import net.easecation.eccommons.ECCommons;
 import net.easecation.eccommons.adt.Either;
 import net.easecation.eccommons.adt.Tuple;
@@ -425,6 +426,10 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		});
 		whenFailed(promise::onFailed);
 		return promise;
+	}
+
+	public AsyncPromise<T> filter(Predicate<T> p) {
+		return flatMap(value -> p.test(value) ? success(value) : failed());
 	}
 
 	public static <T> AsyncPromise<T> pure(T value) {
