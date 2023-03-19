@@ -4,6 +4,7 @@ import cn.nukkit.utils.TextFormat;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import net.easecation.eccommons.ECCommons;
 import net.easecation.eccommons.adt.Either;
 import net.easecation.eccommons.adt.Tuple;
@@ -85,6 +86,27 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		whenSuccess(promise::onSuccess);
 		whenFailed(promise::onFailed);
 		return this;
+	}
+
+	/**
+	 * Run another promise when current promise completed whether succeed or failed.
+	 * Promise succeed if another promise succeed.
+	 * Promise failed if another promise failed.
+	 */
+	public <U> AsyncPromise<U> seq(Supplier<AsyncPromise<U>> f) {
+		AsyncPromise<U> promise = pending();
+		whenCompleted(() -> {
+			AsyncPromise<U> newPromise;
+			try {
+				newPromise = f.get();
+			} catch (Exception e) {
+				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "转发代理Promise时发生错误", e);
+				promise.onFailed();
+				return;
+			}
+			newPromise.forward(promise);
+		});
+		return promise;
 	}
 
 	/**
@@ -421,8 +443,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 				promise.onFailed();
 				return;
 			}
-			newPromise.whenSuccess(promise::onSuccess);
-			newPromise.whenFailed(promise::onFailed);
+			newPromise.forward(promise);
 		});
 		whenFailed(promise::onFailed);
 		return promise;
