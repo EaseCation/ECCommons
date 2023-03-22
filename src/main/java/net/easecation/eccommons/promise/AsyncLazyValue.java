@@ -32,7 +32,7 @@ public final class AsyncLazyValue<A, T> {
 		if (loaded) {
 			try {
 				if (callback != null) callback.onSuccess(value);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误", e);
 			}
 			return;
@@ -64,7 +64,7 @@ public final class AsyncLazyValue<A, T> {
 				public void onRun() {
 					try {
 						task.runAsync(argument, this);
-					} catch (Exception e) {
+					} catch (Throwable e) {
 						ECCommons.getInstance().getLogger().alert(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误");
 					}
 				}
@@ -75,7 +75,7 @@ public final class AsyncLazyValue<A, T> {
 					while ((task = this.syncTasks.poll()) != null) {
 						try {
 							task.run();
-						} catch (Exception e) {
+						} catch (Throwable e) {
 							ECCommons.getInstance().getLogger().alert(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误");
 						}
 					}
@@ -100,7 +100,7 @@ public final class AsyncLazyValue<A, T> {
 		for (AsyncCallback<T> callback : this.callbacks) {
 			try {
 				if (callback != null) callback.onSuccess(value);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误", e);
 			}
 		}
@@ -113,7 +113,7 @@ public final class AsyncLazyValue<A, T> {
 		for (AsyncCallback<T> callback : this.callbacks) {
 			try {
 				if (callback != null) callback.onFailed();
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误", e);
 			}
 		}

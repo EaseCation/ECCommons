@@ -57,7 +57,7 @@ public final class AsyncIdBasedCache<A, T> {
 		if (value != null) {
 			try {
 				if (callback != null) callback.onSuccess(value);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
 			}
 			return;
@@ -91,7 +91,7 @@ public final class AsyncIdBasedCache<A, T> {
 				public void onRun() {
 					try {
 						task.runAsync(id, argument, this);
-					} catch (Exception e) {
+					} catch (Throwable e) {
 						ECCommons.getInstance().getLogger().debug(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误 id = " + id);
 					}
 				}
@@ -102,7 +102,7 @@ public final class AsyncIdBasedCache<A, T> {
 					while ((task = this.syncTasks.poll()) != null) {
 						try {
 							task.run();
-						} catch (Exception e) {
+						} catch (Throwable e) {
 							ECCommons.getInstance().getLogger().debug(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误 id = " + id);
 						}
 					}
@@ -127,7 +127,7 @@ public final class AsyncIdBasedCache<A, T> {
 		for (AsyncCallback<T> callback : callbackList) {
 			try {
 				if (callback != null) callback.onSuccess(entry);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
 			}
 		}
@@ -140,7 +140,7 @@ public final class AsyncIdBasedCache<A, T> {
 		for (AsyncCallback<T> callback : callbackList) {
 			try {
 				if (callback != null) callback.onFailed();
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().debug(TextFormat.RED + "调用异步任务 " + taskName + " 回调函数时发生错误 id = " + id, e);
 			}
 		}

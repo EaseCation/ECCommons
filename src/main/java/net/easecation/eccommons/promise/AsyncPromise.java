@@ -48,7 +48,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 			if (success) {
 				try {
 					callback.accept(value);
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用回调函数时发生错误", e);
 				}
 			}
@@ -63,7 +63,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 			if (!success) {
 				try {
 					callback.run();
-				} catch (Exception e) {
+				} catch (Throwable e) {
 					ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用回调函数时发生错误", e);
 				}
 			}
@@ -99,7 +99,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 			AsyncPromise<U> newPromise;
 			try {
 				newPromise = f.get();
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "转发代理Promise时发生错误", e);
 				promise.onFailed();
 				return;
@@ -394,7 +394,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		for (Consumer<T> callback : this.whenSuccess) {
 			try {
 				callback.accept(value);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用回调函数时发生错误", e);
 			}
 		}
@@ -408,7 +408,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		for (Runnable callback : this.whenFailed) {
 			try {
 				callback.run();
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "调用回调函数时发生错误", e);
 			}
 		}
@@ -421,7 +421,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 			U newValue;
 			try {
 				newValue = f.apply(value);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "计算新Promise值时发生错误", e);
 				promise.onFailed();
 				return;
@@ -438,7 +438,7 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 			AsyncPromise<U> newPromise;
 			try {
 				newPromise = f.apply(value);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "转发代理Promise时发生错误", e);
 				promise.onFailed();
 				return;
