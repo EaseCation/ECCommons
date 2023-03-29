@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import net.easecation.eccommons.ECCommons;
 import net.easecation.eccommons.adt.Either;
+import net.easecation.eccommons.adt.Maybe;
 import net.easecation.eccommons.adt.Tuple;
 import net.easecation.eccommons.adt.Unit;
 
@@ -106,6 +107,52 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 			}
 			newPromise.forward(promise);
 		});
+		return promise;
+	}
+
+	/**
+	 * Replace with new value if current promise failed.
+	 * Promise succeed if current promise succeed.
+	 * Promise will not fail.
+	 */
+	public AsyncPromise<T> orElse(T value) {
+		AsyncPromise<T> promise = AsyncPromise.pending();
+		whenSuccess(promise::onSuccess);
+		whenFailed(() -> promise.onSuccess(value));
+		return promise;
+	}
+
+	/**
+	 * Replace with new value if current promise failed.
+	 * Promise succeed if current promise succeed.
+	 * Promise will fail if supplier throw exception.
+	 */
+	public AsyncPromise<T> orElseGet(Supplier<T> f) {
+		AsyncPromise<T> promise = AsyncPromise.pending();
+		whenSuccess(promise::onSuccess);
+		whenFailed(() -> {
+			T newValue;
+			try {
+				newValue = f.get();
+			} catch (Throwable e) {
+				ECCommons.getInstance().getLogger().alert(TextFormat.RED + "计算新Promise值时发生错误", e);
+				promise.onFailed();
+				return;
+			}
+			promise.onSuccess(newValue);
+		});
+		return promise;
+	}
+
+	/**
+	 * Replace with nothing if current promise failed.
+	 * Promise succeed if current promise succeed.
+	 * Promise will not fail.
+	 */
+	public AsyncPromise<Maybe<T>> orElseMaybe() {
+		AsyncPromise<Maybe<T>> promise = AsyncPromise.pending();
+		whenSuccess(value -> promise.onSuccess(Maybe.ofJust(value)));
+		whenFailed(() -> promise.onSuccess(Maybe.ofNothing()));
 		return promise;
 	}
 
