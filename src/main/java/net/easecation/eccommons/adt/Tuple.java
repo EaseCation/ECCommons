@@ -36,6 +36,23 @@ public final class Tuple<A, B> {
 		return of(first, second);
 	}
 
+	// Pattern matching
+	public interface Case<A, B, R> {
+		R caseTuple(A first, B second);
+	}
+
+	public interface Match<A, B, R> extends Tuple.Case<A, B, R> {
+
+	}
+
+	public <R> R match(Match<A, B, R> match) {
+		return caseOf(match);
+	}
+
+	public <R> R caseOf(Tuple.Case<A, B, R> caseTuple) {
+		return caseTuple.caseTuple(first, second);
+	}
+
 	// Java
 	@Override
 	public boolean equals(Object o) {

@@ -3,6 +3,8 @@ package net.easecation.eccommons.adt;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * ADT type with A + 1 element
@@ -31,12 +33,18 @@ public abstract class Maybe<A> {
 
 	public abstract A coerceJust() throws NoSuchElementException;
 
+	public abstract ConsList<A> toConsList();
+
+	public abstract Stream<A> stream();
+
 	// Monadic Interface
 	public abstract <B> Maybe<B> map(Function<A, B> f);
 
 	public abstract <B> Maybe<B> applyMap(Maybe<Function<A, B>> f);
 
 	public abstract <B> Maybe<B> flatMap(Function<A, Maybe<B>> f);
+
+	public abstract Maybe<A> filter(Predicate<A> f);
 
 	// Pattern matching
 	public abstract <R> R caseOf(Nothing.Case<A, R> caseNothing, Just.Case<A, R> caseJust);
@@ -88,6 +96,16 @@ public abstract class Maybe<A> {
 		}
 
 		@Override
+		public ConsList<A> toConsList() {
+			return ConsList.nil();
+		}
+
+		@Override
+		public Stream<A> stream() {
+			return Stream.empty();
+		}
+
+		@Override
 		public <B> Maybe<B> map(Function<A, B> f) {
 			return Maybe.ofNothing();
 		}
@@ -100,6 +118,11 @@ public abstract class Maybe<A> {
 		@Override
 		public <B> Maybe<B> flatMap(Function<A, Maybe<B>> f) {
 			return Maybe.ofNothing();
+		}
+
+		@Override
+		public Maybe<A> filter(Predicate<A> f) {
+			return this;
 		}
 
 		@Override
@@ -155,6 +178,16 @@ public abstract class Maybe<A> {
 		}
 
 		@Override
+		public ConsList<A> toConsList() {
+			return ConsList.singleton(value);
+		}
+
+		@Override
+		public Stream<A> stream() {
+			return Stream.of(value);
+		}
+
+		@Override
 		public <B> Maybe<B> map(Function<A, B> f) {
 			return ofJust(f.apply(value));
 		}
@@ -167,6 +200,11 @@ public abstract class Maybe<A> {
 		@Override
 		public <B> Maybe<B> flatMap(Function<A, Maybe<B>> f) {
 			return f.apply(value);
+		}
+
+		@Override
+		public Maybe<A> filter(Predicate<A> f) {
+			return f.test(value) ? this : ofNothing();
 		}
 
 		@Override
