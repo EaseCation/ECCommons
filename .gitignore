@@ -41,7 +41,6 @@ CPUTest.jar
 dependency-reduced-pom.xml
 target
 target/*
-src/test/
 ecdocker.tar
 docker-runtime
 /ease_chat/tstart.sh
