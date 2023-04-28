@@ -56,6 +56,10 @@ public class Parser<S, U, A> {
 			if (this.column != that.column) return (this.column < that.column ? -1 : 1);
 			return 0;
 		}
+
+		public String prettyPrint() {
+			return Escaper.escapeString(sourceName) + " (line " + line + ", column " + column + ")";
+		}
 	}
 
 	@Value
@@ -96,6 +100,12 @@ public class Parser<S, U, A> {
 			if (ord < 0) return other;
 			else if (ord > 0) return this;
 			else return addMessages(other.messages);
+		}
+
+		public String prettyPrint() {
+			String pos = position.prettyPrint();
+			String msg = messages.stream().distinct().sorted().collect(Collectors.joining("\n"));
+			return pos + ":\n" + msg;
 		}
 	}
 
