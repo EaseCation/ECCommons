@@ -1,5 +1,11 @@
 package net.easecation.eccommons.adt;
 
+import net.easecation.eccommons.control.Applicative;
+import net.easecation.eccommons.control.Functor;
+import net.easecation.eccommons.control.Monad;
+import net.easecation.eccommons.hkt.TC;
+import net.easecation.eccommons.hkt.TypeConstructor2;
+
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
@@ -7,9 +13,21 @@ import java.util.function.Function;
 /**
  * ADT type with A + B element
  */
-public abstract class Either<A, B> {
+public abstract class Either<A, B> implements TypeConstructor2<Either.HKTWitness, A, B> {
 	private Either() {
 
+	}
+
+	// Higher Kinded Type
+	public enum HKTWitness {}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static <A, B> Equality<TypeConstructor2<HKTWitness, A, B>, Either<A, B>> reflHKT() {
+		return (Equality) Equality.ofRefl();
+	}
+
+	public static <A, B> Either<A, B> coerceHKT(TC<TC<HKTWitness, A>, B> hkt) {
+		return (Either<A, B>) hkt;
 	}
 
 	// Term introduction
@@ -229,5 +247,18 @@ public abstract class Either<A, B> {
 		public interface Case<A, B, R> {
 			R caseRight(B right);
 		}
+	}
+
+	// Type Classes
+	public static <T> Functor<TC<HKTWitness, T>> functor() { return EitherMonad.getInstance(); }
+	public static <T> Applicative<TC<HKTWitness, T>> applicative() { return EitherMonad.getInstance(); }
+	public static <T> Monad<TC<HKTWitness, T>> monad() { return EitherMonad.getInstance(); }
+
+	static class EitherMonad<T> implements Monad<TC<HKTWitness, T>> {
+		static final Monad<? extends TC<HKTWitness, ?>> INSTANCE = new EitherMonad<>();
+		@SuppressWarnings("unchecked") static <T> Monad<TC<HKTWitness, T>> getInstance() { return (Monad<TC<HKTWitness, T>>) INSTANCE; }
+
+		@Override public <A> TC<TC<HKTWitness, T>, A> pure(A a) { return Either.ofRight(a); }
+		@Override public <A, B> TC<TC<HKTWitness, T>, B> flatMap(Function<A, TC<TC<HKTWitness, T>, B>> f, TC<TC<HKTWitness, T>, A> a) { return coerceHKT(a).flatMap(x -> coerceHKT(f.apply(x))); }
 	}
 }

@@ -1,5 +1,10 @@
 package net.easecation.eccommons.adt;
 
+import net.easecation.eccommons.control.Applicative;
+import net.easecation.eccommons.control.Functor;
+import net.easecation.eccommons.control.Monad;
+import net.easecation.eccommons.hkt.TC;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -12,7 +17,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 
-public abstract class ConsList<A> implements Iterable<A> {
+public abstract class ConsList<A> implements Iterable<A>, TC<ConsList.HKTWitness, A> {
 	public static final class Nil<A> extends ConsList<A> {
 		Nil() {}
 
@@ -73,6 +78,11 @@ public abstract class ConsList<A> implements Iterable<A> {
 	}
 
 	ConsList() {}
+
+	public enum HKTWitness {}
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static <A> Equality<TC<HKTWitness, A>, ConsList<A>> reflHKT() { return (Equality) Equality.ofRefl(); }
+	public static <A> ConsList<A> coerceHKT(TC<HKTWitness, A> hkt) { return (ConsList<A>) hkt; }
 
 	public interface Match<A, R> extends Nil.Case<A, R>, Cons.Case<A, R> {}
 	public final <R> R match(Match<A, R> match) { return caseOf(match, match); }
@@ -139,4 +149,17 @@ public abstract class ConsList<A> implements Iterable<A> {
 
 	@Override public abstract boolean equals(Object x);
 	@Override public abstract int hashCode();
+
+	// Type Classes
+	public static Functor<HKTWitness> functor() { return ConsListMonad.getInstance(); }
+	public static Applicative<HKTWitness> applicative() { return ConsListMonad.getInstance(); }
+	public static Monad<HKTWitness> monad() { return ConsListMonad.getInstance(); }
+
+	static class ConsListMonad implements Monad<HKTWitness> {
+		static final Monad<HKTWitness> INSTANCE = new ConsListMonad();
+		static Monad<HKTWitness> getInstance() { return INSTANCE; }
+
+		@Override public <A> TC<HKTWitness, A> pure(A a) { return singleton(a); }
+		@Override public <A, B> TC<HKTWitness, B> flatMap(Function<A, TC<HKTWitness, B>> f, TC<HKTWitness, A> a) { return coerceHKT(a).flatMap(x -> coerceHKT(f.apply(x))); }
+	}
 }

@@ -1,5 +1,10 @@
 package net.easecation.eccommons.adt;
 
+import net.easecation.eccommons.control.Applicative;
+import net.easecation.eccommons.control.Functor;
+import net.easecation.eccommons.control.Monad;
+import net.easecation.eccommons.hkt.TC;
+
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
@@ -9,9 +14,21 @@ import java.util.stream.Stream;
 /**
  * ADT type with A + 1 element
  */
-public abstract class Maybe<A> {
+public abstract class Maybe<A> implements TC<Maybe.HKTWitness, A> {
 	private Maybe() {
 
+	}
+
+	// Higher Kinded Type
+	public enum HKTWitness {}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static <A> Equality<TC<HKTWitness, A>, Maybe<A>> reflHKT() {
+		return (Equality) Equality.ofRefl();
+	}
+
+	public static <A> Maybe<A> coerceHKT(TC<HKTWitness, A> hkt) {
+		return (Maybe<A>) hkt;
 	}
 
 	// Term introduction
@@ -237,5 +254,18 @@ public abstract class Maybe<A> {
 		public interface Case<A, R> {
 			R caseJust(A value);
 		}
+	}
+
+	// Type Classes
+	public static Functor<HKTWitness> functor() { return MaybeMonad.getInstance(); }
+	public static Applicative<HKTWitness> applicative() { return MaybeMonad.getInstance(); }
+	public static Monad<HKTWitness> monad() { return MaybeMonad.getInstance(); }
+
+	static class MaybeMonad implements Monad<HKTWitness> {
+		static final Monad<HKTWitness> INSTANCE = new MaybeMonad();
+		static Monad<HKTWitness> getInstance() { return INSTANCE; }
+
+		@Override public <A> TC<HKTWitness, A> pure(A a) { return ofJust(a); }
+		@Override public <A, B> TC<HKTWitness, B> flatMap(Function<A, TC<HKTWitness, B>> f, TC<HKTWitness, A> a) { return coerceHKT(a).flatMap(x -> coerceHKT(f.apply(x))); }
 	}
 }

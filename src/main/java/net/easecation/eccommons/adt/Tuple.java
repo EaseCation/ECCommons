@@ -1,17 +1,32 @@
 package net.easecation.eccommons.adt;
 
+import net.easecation.eccommons.hkt.TC;
+import net.easecation.eccommons.hkt.TypeConstructor2;
+
 import java.util.Objects;
 
 /**
  * ADT type with A * B element
  */
-public final class Tuple<A, B> {
+public final class Tuple<A, B> implements TypeConstructor2<Tuple.HKTWitness, A, B> {
 	public final A first;
 	public final B second;
 
 	private Tuple(A first, B second) {
 		this.first = first;
 		this.second = second;
+	}
+
+	// Higher Kinded Type
+	public enum HKTWitness {}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static <A, B> Equality<TypeConstructor2<HKTWitness, A, B>, Tuple<A, B>> reflHKT() {
+		return (Equality) Equality.ofRefl();
+	}
+
+	public static <A, B> Tuple<A, B> coerceHKT(TC<TC<HKTWitness, A>, B> hkt) {
+		return (Tuple<A, B>) hkt;
 	}
 
 	// Term introduction
