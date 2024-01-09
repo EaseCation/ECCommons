@@ -92,7 +92,7 @@ public final class AsyncIdBasedCache<A, T> {
 					try {
 						task.runAsync(id, argument, this);
 					} catch (Throwable e) {
-						ECCommons.getInstance().getLogger().debug(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误 id = " + id);
+						ECCommons.getInstance().getLogger().debug(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误 id = " + id, e);
 					}
 				}
 
@@ -103,7 +103,7 @@ public final class AsyncIdBasedCache<A, T> {
 						try {
 							task.run();
 						} catch (Throwable e) {
-							ECCommons.getInstance().getLogger().debug(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误 id = " + id);
+							ECCommons.getInstance().getLogger().debug(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误 id = " + id, e);
 						}
 					}
 					if (hasResult) {

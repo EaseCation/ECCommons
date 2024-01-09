@@ -45,7 +45,7 @@ public final class AsyncTransientScheduler<T> {
 				try {
 					task.runAsync(this);
 				} catch (Throwable e) {
-					ECCommons.getInstance().getLogger().alert(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误");
+					ECCommons.getInstance().getLogger().alert(TextFormat.RED + "运行异步任务 " + taskName + " 时发生错误", e);
 				}
 			}
 
@@ -56,7 +56,7 @@ public final class AsyncTransientScheduler<T> {
 					try {
 						task.run();
 					} catch (Throwable e) {
-						ECCommons.getInstance().getLogger().alert(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误");
+						ECCommons.getInstance().getLogger().alert(TextFormat.RED + "完成异步任务 " + taskName + " 时发生错误", e);
 					}
 				}
 				if (hasResult) {
