@@ -32,6 +32,10 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 		this.value = value;
 	}
 
+	public boolean isCompleted() {
+		return completed;
+	}
+
 	public static <T> AsyncPromise<T> pending() {
 		return new AsyncPromise<>(false, false, null);
 	}
