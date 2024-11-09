@@ -10,11 +10,25 @@ import java.util.LinkedList;
 
 public final class AsyncTransientScheduler<T> {
 	private final String taskName;
+	private final boolean virtualThread;
 	private final AsyncTransientTask<T> task;
 
 	public AsyncTransientScheduler(String taskName, AsyncTransientTask<T> task) {
+		this(taskName, false, task);
+	}
+
+	public AsyncTransientScheduler(String taskName, boolean virtualThread, AsyncTransientTask<T> task) {
 		this.taskName = taskName;
-		this.task = task;
+        this.virtualThread = virtualThread;
+        this.task = task;
+	}
+
+	public static <T> AsyncTransientScheduler<T> ofVirtual(String taskName, AsyncTransientTask<T> task) {
+		return new AsyncTransientScheduler<>(taskName, true, task);
+	}
+
+	public static <T> AsyncTransientScheduler<T> ofNormal(String taskName, AsyncTransientTask<T> task) {
+		return new AsyncTransientScheduler<>(taskName, false, task);
 	}
 
 	public AsyncPromise<T> schedule() {
@@ -38,6 +52,11 @@ public final class AsyncTransientScheduler<T> {
 			public void handle(T result) {
 				this.hasResult = true;
 				this.result = result;
+			}
+
+			@Override
+			protected boolean isVirtual() {
+				return virtualThread;
 			}
 
 			@Override
