@@ -3,8 +3,6 @@ package net.easecation.eccommons.promise;
 import cn.nukkit.utils.TextFormat;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
 import net.easecation.eccommons.ECCommons;
 import net.easecation.eccommons.adt.Either;
 import net.easecation.eccommons.adt.Maybe;
@@ -17,6 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public final class AsyncPromise<T> implements AsyncCallback<T> {
 	private final List<Consumer<T>> whenSuccess = new ArrayList<>();
@@ -34,6 +34,10 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 
 	public boolean isCompleted() {
 		return completed;
+	}
+
+	public boolean isSuccess() {
+		return success;
 	}
 
 	public static <T> AsyncPromise<T> pending() {
