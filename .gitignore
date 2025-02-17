@@ -46,3 +46,5 @@ docker-runtime
 /ease_chat/tstart.sh
 /SakuraAntiCheat/SakuraAntiCheat.iml
 /SakuraAntiCheat/out
+# Gradle Build
+build
