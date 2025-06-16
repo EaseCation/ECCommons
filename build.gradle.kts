@@ -6,7 +6,7 @@ plugins {
 extra.set("copyTo", "{server}/plugins")
 
 dependencies {
-    compileOnly(project(":Nukkit"))
+    compileOnly(project(":nukkit"))
     compileOnly(libs.fastutil)
     testImplementation(libs.jupiter.api)
     testImplementation(libs.jupiter.engine)
