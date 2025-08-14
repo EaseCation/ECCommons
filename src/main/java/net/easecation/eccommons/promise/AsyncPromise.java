@@ -4,10 +4,11 @@ import cn.nukkit.utils.TextFormat;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.easecation.eccommons.ECCommons;
-import net.easecation.eccommons.adt.Either;
-import net.easecation.eccommons.adt.Maybe;
-import net.easecation.eccommons.adt.Tuple;
-import net.easecation.eccommons.adt.Unit;
+import net.easecation.eccommons.adt.*;
+import net.easecation.eccommons.control.Applicative;
+import net.easecation.eccommons.control.Functor;
+import net.easecation.eccommons.control.Monad;
+import net.easecation.eccommons.hkt.TC;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public final class AsyncPromise<T> implements AsyncCallback<T> {
+public final class AsyncPromise<T> implements AsyncCallback<T>, TC<AsyncPromise.HKTWitness, T> {
 	private final List<Consumer<T>> whenSuccess = new ArrayList<>();
 	private final List<Runnable> whenFailed = new ArrayList<>();
 
@@ -510,5 +511,30 @@ public final class AsyncPromise<T> implements AsyncCallback<T> {
 
 	public static <T> AsyncPromise<T> pure(T value) {
 		return success(value);
+	}
+
+    // Higher Kinded Type
+    public enum HKTWitness {}
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <A> Equality<TC<HKTWitness, A>, AsyncPromise<A>> reflHKT() {
+        return (Equality) Equality.ofRefl();
+    }
+
+    public static <A> AsyncPromise<A> coerceHKT(TC<HKTWitness, A> hkt) {
+        return (AsyncPromise<A>) hkt;
+    }
+
+    // Type Classes
+    public static Functor<HKTWitness> functor() { return AsyncPromiseMonad.getInstance(); }
+	public static Applicative<HKTWitness> applicative() { return AsyncPromiseMonad.getInstance(); }
+	public static Monad<HKTWitness> monad() { return AsyncPromiseMonad.getInstance(); }
+
+	static class AsyncPromiseMonad implements Monad<HKTWitness> {
+		static final Monad<HKTWitness> INSTANCE = new AsyncPromiseMonad();
+		static Monad<HKTWitness> getInstance() { return INSTANCE; }
+
+		@Override public <A> TC<HKTWitness, A> pure(A a) { return AsyncPromise.pure(a); }
+		@Override public <A, B> TC<HKTWitness, B> flatMap(Function<A, TC<HKTWitness, B>> f, TC<HKTWitness, A> a) { return coerceHKT(a).flatMap(x -> coerceHKT(f.apply(x))); }
 	}
 }

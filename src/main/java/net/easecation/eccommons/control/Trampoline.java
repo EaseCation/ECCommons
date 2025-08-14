@@ -7,11 +7,13 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import net.easecation.eccommons.adt.Either;
+import net.easecation.eccommons.adt.Equality;
 import net.easecation.eccommons.adt.Maybe;
 import net.easecation.eccommons.adt.Unit;
+import net.easecation.eccommons.hkt.TC;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public abstract class Trampoline<A> {
+public abstract class Trampoline<A> implements TC<Trampoline.HKTWitness, A> {
 	@Value
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	@EqualsAndHashCode(callSuper = false)
@@ -132,4 +134,29 @@ public abstract class Trampoline<A> {
 
 	public final A run() { return run(Maybe.ofNothing()); }
 	public final A runInterruptibly() throws InterruptedException { return run(Maybe.ofJust(Thrower.of(InterruptedException::new))); }
+
+    // Higher Kinded Type
+	public enum HKTWitness {}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static <A> Equality<TC<HKTWitness, A>, Trampoline<A>> reflHKT() {
+		return (Equality) Equality.ofRefl();
+	}
+
+	public static <A> Trampoline<A> coerceHKT(TC<HKTWitness, A> hkt) {
+		return (Trampoline<A>) hkt;
+	}
+
+    // Type Classes
+	public static Functor<HKTWitness> functor() { return TrampolineMonad.getInstance(); }
+	public static Applicative<HKTWitness> applicative() { return TrampolineMonad.getInstance(); }
+	public static Monad<HKTWitness> monad() { return TrampolineMonad.getInstance(); }
+
+	static class TrampolineMonad implements Monad<HKTWitness> {
+		static final Monad<HKTWitness> INSTANCE = new TrampolineMonad();
+		static Monad<HKTWitness> getInstance() { return INSTANCE; }
+
+		@Override public <A> TC<HKTWitness, A> pure(A a) { return done(a); }
+		@Override public <A, B> TC<HKTWitness, B> flatMap(Function<A, TC<HKTWitness, B>> f, TC<HKTWitness, A> a) { return coerceHKT(a).flatMap(x -> coerceHKT(f.apply(x))); }
+	}
 }

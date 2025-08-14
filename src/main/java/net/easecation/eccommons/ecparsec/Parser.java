@@ -14,14 +14,16 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.With;
+import net.easecation.eccommons.adt.Equality;
 import net.easecation.eccommons.adt.Maybe;
 import net.easecation.eccommons.adt.Unit;
-import net.easecation.eccommons.control.Functional;
-import net.easecation.eccommons.control.Trampoline;
+import net.easecation.eccommons.control.*;
+import net.easecation.eccommons.hkt.TC;
+import net.easecation.eccommons.hkt.TypeConstructor3;
 
 @Value
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Parser<S, U, A> {
+public class Parser<S, U, A> implements TypeConstructor3<Parser.HKTWitness, S, U, A> {
 	@Value
 	@With
 	@AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -348,4 +350,33 @@ public class Parser<S, U, A> {
 			.or(unit());
 	}
 	// endregion
+
+    // region Higher Kinded Type
+    public enum HKTWitness {}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	public static <S, U, A> Equality<TypeConstructor3<HKTWitness, S, U, A>, Parser<S, U, A>> reflHKT() {
+		return (Equality) Equality.ofRefl();
+	}
+
+	public static <S, U, A> Parser<S, U, A> coerceHKT(TC<TC<TC<HKTWitness, S>, U>, A> hkt) {
+		return (Parser<S, U, A>) hkt;
+	}
+    // endregion
+
+    // region Type Classes
+    public static <S, U> Functor<TC<TC<HKTWitness, S>, U>> functor() { return ParserMonad.getInstance(); }
+	public static <S, U> Applicative<TC<TC<HKTWitness, S>, U>> applicative() { return ParserMonad.getInstance(); }
+	public static <S, U> Monad<TC<TC<HKTWitness, S>, U>> monad() { return ParserMonad.getInstance(); }
+
+	static class ParserMonad<S, U> implements Monad<TC<TC<HKTWitness, S>, U>> {
+        @SuppressWarnings({"unchecked", "rawtypes"})
+		static final Monad<TC<TC<HKTWitness, ?>, ?>> INSTANCE = new ParserMonad();
+        @SuppressWarnings({"unchecked", "rawtypes"})
+		static <S, U> Monad<TC<TC<HKTWitness, S>, U>> getInstance() { return (Monad) INSTANCE; }
+
+		@Override public <A> TC<TC<TC<HKTWitness, S>, U>, A> pure(A a) { return of(a); }
+		@Override public <A, B> TC<TC<TC<HKTWitness, S>, U>, B> flatMap(Function<A, TC<TC<TC<HKTWitness, S>, U>, B>> f, TC<TC<TC<HKTWitness, S>, U>, A> a) { return coerceHKT(a).flatMap(x -> coerceHKT(f.apply(x))); }
+	}
+    // endregion
 }
