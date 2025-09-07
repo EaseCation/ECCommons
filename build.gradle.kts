@@ -3,12 +3,11 @@ plugins {
     id("ecbuild.copy-conventions")
 }
 
-extra.set("copyTo", "{server}/plugins")
+extra.set("copyTo", listOf("{server}/plugins", "{login}/plugins"))
 
 dependencies {
     compileOnly(project(":nukkit"))
     compileOnly(libs.fastutil)
-    testImplementation(libs.jupiter.api)
     testImplementation(libs.jupiter.engine)
 }
 
